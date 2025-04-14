@@ -59,8 +59,8 @@ def getData(filePath):
 
 if __name__ == "__main__":
     testDir = "puzzles/frameTests/"
-    tests = ["test1.txt", "test2.txt", "test3.txt", "test4.txt", "test5.txt"]
-    solutions = [3, 1, 1, 1, 3]
+    tests = ["test1.txt", "test2.txt", "test3.txt", "test4.txt", "test5.txt", "test6.txt"]
+    solutions = [3, 1, 1, 1, 3, 7]
     for i in range(len(tests)):
         assert(minFrame(testDir + tests[i]) == solutions[i])
     print("All Tests Passed")
