@@ -1,1 +1,1 @@
-# RohitLabMisc
+# SinghLabPuzzles
