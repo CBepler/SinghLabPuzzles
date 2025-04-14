@@ -1,52 +1,59 @@
 '''
 Runtime Complexity: Getting the positions that are x is O(mn).
-Every element is then looped over for every valid value of k which is up to the min of (n, m) giving this O(min(n,m)*n*m*(work per element))
-For each element it must be compared to at most m*n different elements in xPositions.
-This gives a runtime of O(m^2n^2 * min(n, m))
+Making the prefixSum array is also O(mn)
+The nested loop is k * m * n * (work per element)
+k = min(m, n) making this min(m, n) * m * n * (work per element)
+The work per element is simply a call to isValidFrame which is O(1)
+The total runtime complexity is O(m * n * min(m, n))
 
-Space Complexity: the only added space is xPositions which is O(mn)
+Space Complexity: xPositions and prefixSum are both O(mn) making the total O(mn)
 '''
 
 
 def minFrame(filePath):
     dimensions, grid = getData(filePath)
-    k = 3
+    n, m = dimensions
     xPositions = getXPositions(grid)
-    while k <= min(dimensions):
-        for i in range(dimensions[0] + 1 - k):
-            for j in range(dimensions[1] + 1 - k):
-                good = True
-                for pos in xPositions:
-                    if not inSquare(i, j, k, pos):
-                        good = False
-                        break
-                if good : return k
-        k += 1
+    if not xPositions:
+        return 1
+    prefixSum = [[0] * (m + 1) for _ in range(n + 1)]
+    for x, y in xPositions:
+        prefixSum[x + 1][y + 1] = 1
+    for i in range(1, n + 1):
+        for j in range(1, m + 1):
+            prefixSum[i][j] += prefixSum[i - 1][j] + prefixSum[i][j - 1] - prefixSum[i - 1][j - 1]
+
+    def isValidFrame(row, col, sideLength):
+        r2, c2 = row + sideLength - 1, col + sideLength - 1
+        if r2 >= n or c2 >= m:
+            return False
+        fullX = (prefixSum[r2 + 1][c2 + 1]
+                   - prefixSum[row][c2 + 1]
+                   - prefixSum[r2 + 1][col]
+                   + prefixSum[row][col])
+        innerX = (prefixSum[r2][c2]
+                   - prefixSum[row + 1][c2]
+                   - prefixSum[r2][col + 1]
+                   + prefixSum[row + 1][col + 1])
+        totalXs = fullX - innerX
+        expectedXs = len(xPositions)
+        return totalXs == expectedXs
+    
+    for k in range(3, min(n, m) + 1):
+        for i in range(n - k + 1):
+            for j in range(m - k + 1):
+                if isValidFrame(i, j, k):
+                    return k
     return 1
 
 def getXPositions(grid):
-    xPositions = []
-    for row in range(len(grid)):
-        for col in range(len(grid[row])):
-            if grid[row][col] == 'X':
-                xPositions.append([row, col])
-    return xPositions
-
-def inSquare(row, col, sideLength, xPos):
-    xRow = xPos[0]
-    xCol = xPos[1]
-    if xRow == row or xRow == row + sideLength - 1:  #top or bottom sides of frame
-        return xCol >= col and xCol < col + sideLength
-    if xCol == col or xCol == col + sideLength - 1:  #left or right sides of frame
-        return xRow >= row and xRow < row + sideLength
-    return False
+    return [[row, col] for row in range(len(grid)) for col in range(len(grid[row])) if grid[row][col] == 'X']
 
 def getData(filePath):
     with open(filePath, 'r') as f:
         lines = f.readlines()
     lines = [line.strip() for line in lines]
-    dimensions = lines[0].split(' ')
-    dimensions = [int(dim) for dim in dimensions]
+    dimensions = list(map(int, lines[0].split()))
     grid = [list(line) for line in lines[1:]]
     return dimensions, grid
 
